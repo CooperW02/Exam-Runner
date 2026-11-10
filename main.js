@@ -1061,6 +1061,9 @@ function tick() {
     }
     lastV = V;
     lastA = a;
+    if (popOpen() && typeof pop.__updateDisplay === 'function') {
+        pop.__updateDisplay({ cfg, shown, V, a })
+    }
     paint(stage, V);
     if (popStage) paint(popStage, V);
     /* control panel */
@@ -1086,15 +1089,11 @@ function tick() {
 function dispLoop() {
     document.body.classList.add('dm');
     $('#run').hidden = false;
-    window.opener.__dispReady = true;
     let ck = null;
     addEventListener('resize', () => fitCv(stage));
     document.addEventListener('fullscreenchange', () => fitCv(stage));
     stage.addEventListener('dblclick', () => toggleFS(stage));
-    setInterval(() => {
-        const O = window.opener;
-        if (!O || O.closed) return window.close();
-        const x = O.__x();
+    window.__updateDisplay = x => {
         if (!x || !x.V) return;
         cfg = x.cfg;
         shown = x.shown;
@@ -1104,7 +1103,14 @@ function dispLoop() {
             showMat(stage, x.a && cfg.mats.find(m => m.id === x.a), false)
         }
         paint(stage, x.V)
-    }, 250)
+    };
+    const O = window.opener;
+    if (!O || O.closed) return window.close();
+    window.__updateDisplay(O.__x());
+    O.__dispReady = true;
+    setInterval(() => {
+        if (!window.opener || window.opener.closed) window.close()
+    }, 1000)
 }
 fillForm();
 if (DM) dispLoop();

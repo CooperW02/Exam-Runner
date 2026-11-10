@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Exam Runner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header><b>Exam Runner</b>
+        <nav><button data-t="setup" class="on">Setup</button><button data-t="run">Run</button></nav>
+        <span id="clock"></span></header>
+
+    <main id="setup">
+        <div class="wide jump"><small style="align-self:center">Jump to:</small>
+            <button class="btn alt" data-go="c-details">Details</button><button class="btn alt" data-go="c-time">Time</button><button class="btn alt" data-go="c-secs">Sections</button><button class="btn alt" data-go="c-guides">Guides</button><button class="btn alt"
+                data-go="c-sound">Sound cues</button><button class="btn alt" data-go="c-mats">Material</button><button class="btn alt" data-go="c-presets">Presets</button></div>
+
+        <section class="card" id="c-details">
+            <h2>Exam details <small>all optional</small></h2>
+            <label>Title<input id="title"></label><label>Subject (shown as a subtitle)<input id="subject"></label>
+            <label>Description (shown under the subject)<textarea id="desc0"></textarea></label>
+            <label>Rules (shown in the bottom third of the display)<textarea id="rules"></textarea></label></section>
+
+        <section class="card" id="c-time">
+            <h2>Time</h2>
+            <div class="row"><label>Start time today<input type="time" id="start"></label>
+                <label>Total exam length (minutes)<input type="number" id="dur" min="1"></label></div>
+            <div class="btns"><button class="btn" id="sched">Schedule and open run screen</button></div>
+            <small>Or skip the start time and press Start now on the run screen. Sections and guides below are split out of the total length.</small></section>
+
+        <section class="card wide" id="c-secs">
+            <h2>Sections <small>optional; split the total time into parts</small></h2>
+            <div id="secs" style="display:grid;gap:8px"></div><small id="secinfo"></small>
+            <div class="btns"><button class="btn alt" id="addsec">Add section</button><button class="btn alt" id="preset">Add 5 min reading, rest as working time</button></div>
+        </section>
+
+        <section class="card wide" id="c-guides">
+            <h2>Guides <small>optional; e.g. “Question 1 should take 20 minutes”. Guides run back to back from the exam start, or from the start of their selected section</small></h2>
+            <div id="guides" style="display:grid;gap:8px"></div><small id="guideinfo"></small>
+            <div class="btns"><button class="btn alt" id="addguide">Add guide</button></div>
+        </section>
+
+        <section class="card wide" id="c-sound">
+            <h2>Sound cues</h2>
+            <div class="row"><label style="flex:0">On<input type="checkbox" id="cueOn"></label>
+                <label>Style<select id="cueMode"><option value="beep">Beeps (pitch rises as time runs low)</option><option value="voice">Spoken voice</option></select></label>
+                <label>Announce at (minutes left, comma separated)<input id="cueMarks"></label></div>
+            <div id="voicebox" class="row" hidden><label>Voice<select id="vname"></select></label>
+                <label>Speed<input type="range" id="vrate" min="0.5" max="1.2" step="0.05"></label>
+                <label>Pitch<input type="range" id="vpitch" min="0.5" max="1.5" step="0.05"></label>
+                <label>Volume<input type="range" id="vvol" min="0.2" max="1" step="0.05"></label>
+                <button class="btn alt" id="vtest">Preview voice</button></div>
+            <div class="btns"><small>Test cues (uses the style above):</small><span id="tests" class="btns"></span></div>
+        </section>
+
+        <section class="card wide" id="c-mats">
+            <h2>Material <small>text, image, video, audio or a link (YouTube works), shown on command or at set times</small></h2>
+            <div id="mats" style="display:grid;gap:8px"></div>
+            <label style="max-width:420px">While material is showing<select class="mm"><option value="r">Split: info left, material right</option><option value="l">Split: material left, info right</option><option value="c">Cover the whole display</option></select></label>
+            <div class="btns"><button class="btn alt" id="addmat">Add material</button></div>
+            <small>Clip start and end accept seconds or m:ss, and trim video, audio and linked videos. Uploaded images, video and audio are not saved in presets. Re-add them after loading.</small></section>
+
+        <section class="card wide" id="c-presets">
+            <h2>Presets <small>save, load, export and import the whole setup</small></h2>
+            <div class="row"><label>Preset name<input id="pname" placeholder="e.g. Year 11 Maths final"></label><button class="btn" id="psave">Save preset</button><button class="btn alt" id="pnew">New blank setup</button><button class="btn alt" id="pexp">Export current setup</button></div>
+            <div id="plist" style="display:grid;gap:8px"></div>
+            <div class="row"><label>Import preset file<input type="file" id="pfile" accept=".json,application/json"></label>
+                <label style="flex:2">Or paste preset text here (exports also appear here)<textarea id="pio"></textarea></label><button class="btn alt" id="pimp">Import pasted text</button></div>
+        </section>
+    </main>
+
+    <main id="run" hidden>
+        <div id="stageHost"></div>
+        <aside id="ctl">
+            <section class="panel full">
+                <h3>Live status</h3>
+                <div id="live">
+                    <div><span>Status</span><b id="lvSt"></b></div>
+                    <div><span id="lvMainK">Time remaining</span><b id="lvMain"></b></div>
+                    <div><span>Section</span><b id="lvSec">None</b></div>
+                    <div><span>Guide</span><b id="lvGuide">None</b></div>
+                </div>
+            </section>
+            <section class="panel">
+                <h3>Exam</h3>
+                <div class="btns"><button class="btn" id="startNow">Start now</button><button class="btn alt" id="pause">Pause</button><button class="btn alt" id="stop">Stop early</button></div>
+            </section>
+            <section class="panel">
+                <h3>Display</h3>
+                <div class="btns"><button class="btn alt" id="pop">Pop out display</button><button class="btn alt" id="full">Full screen</button></div><small>Both are optional. The preview stays here when popped out.</small></section>
+            <section class="panel full">
+                <h3>Start time today</h3>
+                <div class="row"><label>Start at<input type="time" id="start2"></label><button class="btn" id="setStart">Set start time</button><button class="btn alt" id="hold">Unschedule</button></div>
+                <div class="row"><label>Delay by (minutes)<input type="number" id="dly" min="1" value="5"></label><button class="btn alt" id="delay">Delay</button></div>
+                <small>Pause first if you want to hold the countdown, then resume or set a new time.</small></section>
+            <section class="panel">
+                <h3>Mic and announcements</h3>
+                <div class="btns"><button class="btn alt" id="mic">Mic off</button></div>
+                <div class="btns"><input id="say" type="text" placeholder="Type an announcement" style="flex:1;min-width:140px"><button class="btn alt" id="sayBtn">Speak it</button></div>
+            </section>
+            <section class="panel">
+                <h3>Material</h3><label>Layout while showing<select class="mm"><option value="r">Split: info left, material right</option><option value="l">Split: material left, info right</option><option value="c">Cover the whole display</option></select></label>
+                <div class="btns" id="matbtns"></div>
+            </section>
+            <small class="full">Keep speakers away from the mic when it is on, or use headphones. Click once on the page so the browser allows sound.</small>
+        </aside>
+    </main>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
